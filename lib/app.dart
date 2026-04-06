@@ -41,6 +41,7 @@ class App extends StatelessWidget {
         child: BlocBuilder<ThemeCubit, bool>(
           builder: (context, isDark) {
             return MaterialApp.router(
+              debugShowCheckedModeBanner: false,
               title: 'FinTrack',
               theme: AppTheme.light(),
               darkTheme: AppTheme.dark(),

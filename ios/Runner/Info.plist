@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>FinTrack uses the camera to scan receipts and pre-fill transaction amounts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FinTrack can read receipts from your photo library to pre-fill transaction amounts.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
