@@ -197,6 +197,14 @@ flutter run
 - Insights are managed with `InsightsCubit`
 - Theme mode is managed with `ThemeCubit`
 
+## APK
+
+The release APK is included in the repository here:
+
+- [Download APK](app_assets/apk/app-release.apk)
+
+You can install it on an Android device after enabling installs from unknown sources if needed.
+
 ## Screenshots
 
 Current app screenshots from the project are shown below.
