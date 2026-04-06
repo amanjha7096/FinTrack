@@ -209,37 +209,48 @@ You can install it on an Android device after enabling installs from unknown sou
 
 Current app screenshots from the project are shown below.
 
-### Home Screen (Light)
-
-![Home Screen Light](app_assets/screenshots/Screenshot_20260406_193237.jpg)
-
-### Home Screen (Dark)
-
-![Home Screen Dark](app_assets/screenshots/Screenshot_20260406_193456.jpg)
-
-### Transactions Screen
-
-![Transactions Screen](app_assets/screenshots/Screenshot_20260406_193256.jpg)
-
-### Filter Sheet
-
-![Filter Sheet](app_assets/screenshots/Screenshot_20260406_193321.jpg)
-
-### Add / Edit Transaction Sheet
-
-![Add Transaction Sheet](app_assets/screenshots/Screenshot_20260406_193437.jpg)
-
-### Insights Screen
-
-![Insights Screen](app_assets/screenshots/Screenshot_20260406_193333.jpg)
-
-### Goals Screen (Empty Goal State)
-
-![Goals Screen Empty](app_assets/screenshots/Screenshot_20260406_193348.jpg)
-
-### Goals Screen (With Goal and Budget)
-
-![Goals Screen Filled](app_assets/screenshots/Screenshot_20260406_193425.jpg)
+<table>
+  <tr>
+    <td align="center">
+      <strong>Home Screen (Light)</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193237.jpg" alt="Home Screen Light" width="260" />
+    </td>
+    <td align="center">
+      <strong>Home Screen (Dark)</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193456.jpg" alt="Home Screen Dark" width="260" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Transactions Screen</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193256.jpg" alt="Transactions Screen" width="260" />
+    </td>
+    <td align="center">
+      <strong>Filter Sheet</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193321.jpg" alt="Filter Sheet" width="260" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Add / Edit Transaction Sheet</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193437.jpg" alt="Add Transaction Sheet" width="260" />
+    </td>
+    <td align="center">
+      <strong>Insights Screen</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193333.jpg" alt="Insights Screen" width="260" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Goals Screen (Empty Goal State)</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193348.jpg" alt="Goals Screen Empty" width="260" />
+    </td>
+    <td align="center">
+      <strong>Goals Screen (With Goal and Budget)</strong><br />
+      <img src="app_assets/screenshots/Screenshot_20260406_193425.jpg" alt="Goals Screen Filled" width="260" />
+    </td>
+  </tr>
+</table>
 
 ## Suggested Screenshot Checklist
 
