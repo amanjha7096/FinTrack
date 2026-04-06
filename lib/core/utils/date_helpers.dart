@@ -1,4 +1,4 @@
-  class DateHelpers {
+class DateHelpers {
   DateHelpers._();
 
   static DateTime normalizeDate(DateTime date) => DateTime(date.year, date.month, date.day);
@@ -14,5 +14,23 @@
       totalDays,
       (index) => DateTime(start.year, start.month, start.day + index),
     );
+  }
+
+  static String monthLabel(DateTime date) {
+    const labels = <String>[
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return labels[date.month - 1];
   }
 }

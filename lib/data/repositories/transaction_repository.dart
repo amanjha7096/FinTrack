@@ -179,7 +179,7 @@ class TransactionRepository implements ITransactionRepository {
     if (tx.type != 'income' && tx.type != 'expense') {
       throw Exception('Invalid transaction type');
     }
-    if (!Categories.allKeys.contains(tx.category)) {
+    if (tx.category.trim().isEmpty) {
       throw Exception('Invalid transaction category');
     }
   }

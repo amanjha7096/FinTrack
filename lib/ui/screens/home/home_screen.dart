@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/theme/theme_cubit.dart';
 import '../../../logic/goal_bloc/goal_bloc.dart';
 import '../../../logic/goal_bloc/goal_state.dart';
-import '../../../core/theme/theme_cubit.dart';
 import '../../../logic/transaction_bloc/transaction_bloc.dart';
 import '../../../logic/transaction_bloc/transaction_event.dart';
 import '../../../logic/transaction_bloc/transaction_state.dart';
@@ -19,14 +20,70 @@ import 'widgets/recent_transactions_list.dart';
 import 'widgets/spending_donut.dart';
 import 'widgets/weekly_bar_chart.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  AnimationController? _controller;
+  bool _didStartAnimation = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller ??= AnimationController(
+      vsync: this,
+      duration: MediaQuery.of(context).disableAnimations
+          ? Duration.zero
+          : const Duration(milliseconds: 800),
+    );
+    if (!_didStartAnimation) {
+      _didStartAnimation = true;
+      _controller!.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
 
   String _greeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
+  }
+
+  Widget _animatedSection({
+    required double begin,
+    required double end,
+    required Widget child,
+  }) {
+    final controller = _controller;
+    if (controller == null) return child;
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: controller,
+        curve: Interval(begin, end, curve: Curves.easeOutCubic),
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(begin, end, curve: Curves.easeOutCubic),
+          ),
+        ),
+        child: child,
+      ),
+    );
   }
 
   @override
@@ -43,13 +100,14 @@ class HomeScreen extends StatelessWidget {
               onRetry: () => context.read<TransactionBloc>().add(const LoadTransactions()),
             );
           }
-          if (state is TransactionLoaded) {
-            if (state.transactions.isEmpty) {
-              return EmptyStateView(
-                title: 'No transactions yet',
-                subtitle: 'Add your first transaction to get started.',
-                ctaLabel: 'Add transaction',
-                onCta: () => context.read<TransactionBloc>().add(const LoadTransactions()),
+            if (state is TransactionLoaded) {
+              if (state.transactions.isEmpty) {
+              return const EmptyStateView(
+                title: 'Your financial story starts here.',
+                subtitle: 'Add your first transaction to begin tracking.',
+                icon: Icons.account_balance_wallet_outlined,
+                animated: true,
+                variant: EmptyStateVariant.home,
               );
             }
             return _buildContent(context, state);
@@ -65,17 +123,15 @@ class HomeScreen extends StatelessWidget {
       padding: AppSpacing.screenPadding,
       child: Column(
         children: const [
-          LoadingShimmer(height: 140),
+          LoadingShimmer(height: 208, radius: 24),
           SizedBox(height: 16),
-          LoadingShimmer(height: 90),
+          LoadingShimmer(height: 96, radius: 20),
           SizedBox(height: 16),
-          LoadingShimmer(height: 220),
+          LoadingShimmer(height: 220, radius: 20),
           SizedBox(height: 16),
-          LoadingShimmer(height: 220),
+          LoadingShimmer(height: 220, radius: 20),
           SizedBox(height: 16),
-          LoadingShimmer(height: 90),
-          SizedBox(height: 16),
-          LoadingShimmer(height: 180),
+          LoadingShimmer(height: 180, radius: 20),
         ],
       ),
     );
@@ -99,25 +155,47 @@ class HomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(context),
-          const SizedBox(height: 16),
-          BalanceHeroCard(balance: state.balance),
-          const SizedBox(height: 16),
-          IncomeExpenseStrip(income: monthlyIncome, expense: monthlyExpense),
-          const SizedBox(height: 16),
-          SpendingDonut(transactions: currentMonthTransactions),
-          const SizedBox(height: 16),
-          WeeklyBarChart(transactions: state.transactions),
-          const SizedBox(height: 16),
-          BlocBuilder<GoalBloc, GoalState>(
-            builder: (context, goalState) {
-              if (goalState is GoalLoaded && goalState.settings.isGoalActive) {
-                return GoalProgressPill(goalState: goalState);
-              }
-              return const SizedBox.shrink();
-            },
+          const SizedBox(height: 18),
+          _animatedSection(
+            begin: 0.0,
+            end: 0.6,
+            child: BalanceHeroCard(
+              balance: state.balance,
+              income: monthlyIncome,
+              expense: monthlyExpense,
+            ),
           ),
           const SizedBox(height: 16),
-          RecentTransactionsList(transactions: state.recentThree),
+          _animatedSection(
+            begin: 0.2,
+            end: 0.8,
+            child: SpendingDonut(transactions: currentMonthTransactions),
+          ),
+          const SizedBox(height: 16),
+          _animatedSection(
+            begin: 0.24,
+            end: 0.84,
+            child: WeeklyBarChart(transactions: state.transactions),
+          ),
+          const SizedBox(height: 16),
+          _animatedSection(
+            begin: 0.28,
+            end: 0.88,
+            child: BlocBuilder<GoalBloc, GoalState>(
+              builder: (context, goalState) {
+                if (goalState is GoalLoaded && goalState.settings.isGoalActive) {
+                  return GoalProgressPill(goalState: goalState);
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          _animatedSection(
+            begin: 0.32,
+            end: 0.92,
+            child: RecentTransactionsList(transactions: state.recentThree),
+          ),
         ],
       ),
     );
@@ -125,6 +203,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     final date = DateFormat('EEE, d MMM').format(DateTime.now());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -132,19 +211,28 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${_greeting()},',
+              _greeting(),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 4),
             Text(
               date,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark ? AppColors.darkTextSub : AppColors.lightTextSub,
+                  ),
             ),
           ],
         ),
-        IconButton(
-          onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-          icon: const Icon(Icons.dark_mode_outlined),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Theme.of(context).dividerColor),
+          ),
+          child: IconButton(
+            onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+            icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+          ),
         ),
       ],
     );

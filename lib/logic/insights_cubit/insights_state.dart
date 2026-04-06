@@ -22,6 +22,8 @@ class InsightsState extends Equatable {
     required this.dailyTotals,
     required this.topCategory,
     required this.avgDailySpend,
+    required this.bestWeekLabel,
+    required this.bestWeekSaved,
     required this.smartTip,
     required this.isLoading,
   });
@@ -34,6 +36,8 @@ class InsightsState extends Equatable {
   final List<DailyTotal> dailyTotals;
   final String topCategory;
   final double avgDailySpend;
+  final String bestWeekLabel;
+  final double bestWeekSaved;
   final String smartTip;
   final bool isLoading;
 
@@ -46,6 +50,8 @@ class InsightsState extends Equatable {
         dailyTotals: const [],
         topCategory: '',
         avgDailySpend: 0,
+        bestWeekLabel: '',
+        bestWeekSaved: 0,
         smartTip: '',
         isLoading: true,
       );
@@ -59,6 +65,8 @@ class InsightsState extends Equatable {
     List<DailyTotal>? dailyTotals,
     String? topCategory,
     double? avgDailySpend,
+    String? bestWeekLabel,
+    double? bestWeekSaved,
     String? smartTip,
     bool? isLoading,
   }) {
@@ -71,6 +79,8 @@ class InsightsState extends Equatable {
       dailyTotals: dailyTotals ?? this.dailyTotals,
       topCategory: topCategory ?? this.topCategory,
       avgDailySpend: avgDailySpend ?? this.avgDailySpend,
+      bestWeekLabel: bestWeekLabel ?? this.bestWeekLabel,
+      bestWeekSaved: bestWeekSaved ?? this.bestWeekSaved,
       smartTip: smartTip ?? this.smartTip,
       isLoading: isLoading ?? this.isLoading,
     );
@@ -86,6 +96,8 @@ class InsightsState extends Equatable {
         dailyTotals,
         topCategory,
         avgDailySpend,
+        bestWeekLabel,
+        bestWeekSaved,
         smartTip,
         isLoading,
       ];

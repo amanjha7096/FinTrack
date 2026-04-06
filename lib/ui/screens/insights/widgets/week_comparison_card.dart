@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../logic/insights_cubit/insights_state.dart';
 
@@ -11,12 +12,16 @@ class WeekComparisonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final change = state.weekChangePercent;
-    final isPositive = change >= 0;
+    final isPositive = change <= 0;
     final arrow = isPositive ? Icons.arrow_upward : Icons.arrow_downward;
-    final color = isPositive ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary;
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final color = isPositive ? AppColors.income : AppColors.expense;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -29,6 +34,7 @@ class WeekComparisonCard extends StatelessWidget {
                 Expanded(
                   child: _WeekValue(label: 'This week', value: state.thisWeekTotal),
                 ),
+                Container(width: 1, height: 56, color: Theme.of(context).dividerColor),
                 Expanded(
                   child: _WeekValue(label: 'Last week', value: state.lastWeekTotal),
                 ),
@@ -37,9 +43,24 @@ class WeekComparisonCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(arrow, size: 16, color: color),
-                const SizedBox(width: 6),
-                Text('${change.abs().toStringAsFixed(0)}%', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: color)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(arrow, size: 14, color: color),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${change.abs().toStringAsFixed(0)}%',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: color),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ],
@@ -58,11 +79,14 @@ class _WeekValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 4),
-        Text(CurrencyFormatter.format(value), style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          CurrencyFormatter.format(value),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
       ],
     );
   }

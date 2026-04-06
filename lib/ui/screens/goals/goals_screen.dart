@@ -96,9 +96,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StreakMilestoneBanner(currentStreak: state.currentStreak),
-          const SizedBox(height: 12),
           StreakHeatmap(state: state),
+          const SizedBox(height: 12),
+          StreakMilestoneBanner(currentStreak: state.currentStreak),
           const SizedBox(height: 16),
           SavingsGoalCard(state: state),
           const SizedBox(height: 16),

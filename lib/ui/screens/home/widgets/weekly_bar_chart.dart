@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/date_helpers.dart';
 import '../../../../data/models/transaction_model.dart';
 
@@ -30,22 +31,42 @@ class WeeklyBarChart extends StatelessWidget {
 
     final maxY = totals.values.fold<double>(0, (max, value) => value > max ? value : max);
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Weekly spending', style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              children: [
+                Text('Weekly spending', style: Theme.of(context).textTheme.titleMedium),
+                const Spacer(),
+                Text('Last 7 days', style: Theme.of(context).textTheme.labelSmall),
+              ],
+            ),
             const SizedBox(height: 12),
             SizedBox(
               height: 200,
               child: BarChart(
                 BarChartData(
                   maxY: maxY == 0 ? 1 : maxY * 1.2,
-                  gridData: const FlGridData(show: false),
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkBorder
+                              : AppColors.lightBorder)
+                          .withValues(alpha: 0.25),
+                      strokeWidth: 0.5,
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -76,17 +97,25 @@ class WeeklyBarChart extends StatelessWidget {
                       barRods: [
                         BarChartRodData(
                           toY: value,
-                          width: 14,
+                          width: 18,
                           color: isToday
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).dividerColor,
-                          borderRadius: BorderRadius.circular(4),
+                              ? AppColors.income
+                              : AppColors.gradientBlueStart.withValues(alpha: 0.45),
+                          backDrawRodData: BackgroundBarChartRodData(
+                            show: true,
+                            toY: maxY == 0 ? 1 : maxY * 1.2,
+                            color: (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder)
+                                .withValues(alpha: 0.45),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ],
                     );
                   }),
                 ),
-                swapAnimationDuration: const Duration(milliseconds: 600),
+                duration: const Duration(milliseconds: 800),
               ),
             ),
           ],

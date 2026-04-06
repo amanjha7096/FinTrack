@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
@@ -160,6 +161,7 @@ class _GoalSheetState extends State<_GoalSheet> {
                 final amount = double.tryParse(_controller.text) ?? 0;
                 if (amount > 0) {
                   context.read<GoalBloc>().add(SetSavingsGoal(amount));
+                  HapticFeedback.vibrate();
                   Navigator.of(context).pop();
                 }
               },

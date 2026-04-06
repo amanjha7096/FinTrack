@@ -8,6 +8,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/services/receipt_scanner_service.dart';
 import '../../../../core/utils/date_helpers.dart';
 import '../../../../data/models/transaction_model.dart';
+import '../../../../data/repositories/i_goal_repository.dart';
 import '../../../../logic/transaction_bloc/transaction_bloc.dart';
 import '../../../../logic/transaction_bloc/transaction_event.dart';
 import 'scan_button_row.dart';
@@ -38,11 +39,14 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
   bool _showBanner = false;
   ScanResult? _lastScan;
   late final ReceiptScannerService _scanner;
+  late final IGoalRepository _goalRepository;
+  List<String> _customCategories = [];
 
   @override
   void initState() {
     super.initState();
     _scanner = getIt<ReceiptScannerService>();
+    _goalRepository = getIt<IGoalRepository>();
     if (widget.transaction != null) {
       final tx = widget.transaction!;
       _amountController.text = tx.amount.toStringAsFixed(0);
@@ -51,6 +55,35 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
       _category = tx.category;
       _date = tx.date;
     }
+    _loadCustomCategories();
+  }
+
+  Future<void> _loadCustomCategories() async {
+    final settings = await _goalRepository.getAppSettings();
+    if (!mounted) return;
+    setState(() => _customCategories = List<String>.from(settings.customCategories));
+  }
+
+  Future<void> _createCustomCategory() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => const _CreateCategoryDialog(),
+    );
+    final trimmed = (name ?? '').trim();
+    if (trimmed.isEmpty) return;
+    final settings = await _goalRepository.getAppSettings();
+    final existing = settings.customCategories.map((e) => e.toLowerCase()).toSet();
+    if (!existing.contains(trimmed.toLowerCase()) &&
+        !Categories.allKeys.map((e) => e.toLowerCase()).contains(trimmed.toLowerCase())) {
+      settings.customCategories = [...settings.customCategories, trimmed];
+      await _goalRepository.saveAppSettings(settings);
+    }
+    if (!mounted) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _customCategories = List<String>.from(settings.customCategories);
+      _category = trimmed;
+    });
   }
 
   @override
@@ -167,15 +200,22 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.transaction != null;
+    final availableCategories = Categories.withCustom(_customCategories);
     return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          // bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
-        child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -238,10 +278,19 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
               const SizedBox(height: 16),
               Text('Category', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _createCustomCategory,
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: const Text('Custom category'),
+                  ),
+                ],
+              ),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: Categories.all
+                children: availableCategories
                     .map(
                       (cat) => InkWell(
                         onTap: () => setState(() => _category = cat.key),
@@ -321,8 +370,56 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
               ],
             ],
           ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _CreateCategoryDialog extends StatefulWidget {
+  const _CreateCategoryDialog();
+
+  @override
+  State<_CreateCategoryDialog> createState() => _CreateCategoryDialogState();
+}
+
+class _CreateCategoryDialogState extends State<_CreateCategoryDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Create custom category'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        decoration: const InputDecoration(hintText: 'Category name'),
+        onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('Create'),
+        ),
+      ],
     );
   }
 }

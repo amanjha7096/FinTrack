@@ -39,6 +39,7 @@ class InsightsCubit extends Cubit<InsightsState> {
         monthTotalExpense: monthTotalExpense,
         avgDailySpend: avgDailySpend,
       );
+      final bestWeek = _findBestSavingWeek(dailyTotals);
 
       emit(state.copyWith(
         selectedMonth: month,
@@ -49,6 +50,8 @@ class InsightsCubit extends Cubit<InsightsState> {
         weekChangePercent: weekTotals.weekChangePercent,
         topCategory: topCategory,
         avgDailySpend: avgDailySpend,
+        bestWeekLabel: bestWeek.label,
+        bestWeekSaved: bestWeek.savedAmount,
         smartTip: smartTip,
         isLoading: false,
       ));
@@ -147,6 +150,29 @@ class InsightsCubit extends Cubit<InsightsState> {
     }
     return 'Your average daily spend this month is ₹${avgDailySpend.toStringAsFixed(0)}.';
   }
+
+  _BestWeekResult _findBestSavingWeek(List<DailyTotal> dailyTotals) {
+    if (dailyTotals.isEmpty) {
+      return const _BestWeekResult(label: '', savedAmount: 0);
+    }
+    double bestSaved = -double.infinity;
+    int bestStartIndex = 0;
+    for (int i = 0; i <= dailyTotals.length - 7; i++) {
+      final window = dailyTotals.sublist(i, i + 7);
+      final income = window.fold<double>(0, (sum, day) => sum + day.income);
+      final expense = window.fold<double>(0, (sum, day) => sum + day.expense);
+      final saved = income - expense;
+      if (saved > bestSaved) {
+        bestSaved = saved;
+        bestStartIndex = i;
+      }
+    }
+
+    final start = dailyTotals[bestStartIndex].date;
+    final end = dailyTotals[bestStartIndex + 6].date;
+    final label = '${start.day} ${DateHelpers.monthLabel(start)}–${end.day} ${DateHelpers.monthLabel(end)}';
+    return _BestWeekResult(label: label, savedAmount: bestSaved.isFinite ? bestSaved : 0);
+  }
 }
 
 class _WeekTotals {
@@ -159,4 +185,11 @@ class _WeekTotals {
   final double thisWeekTotal;
   final double lastWeekTotal;
   final double weekChangePercent;
+}
+
+class _BestWeekResult {
+  const _BestWeekResult({required this.label, required this.savedAmount});
+
+  final String label;
+  final double savedAmount;
 }

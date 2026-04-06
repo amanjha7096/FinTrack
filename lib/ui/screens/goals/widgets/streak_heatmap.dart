@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/date_helpers.dart';
 import '../../../../logic/goal_bloc/goal_state.dart';
 
@@ -18,22 +19,38 @@ class StreakHeatmap extends StatelessWidget {
       expenseTotals[DateHelpers.normalizeDate(key)] = value;
     });
     final maxSpend = expenseTotals.values.fold<double>(0, (max, value) => value > max ? value : max);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final flameColor = state.currentStreak == 0
+        ? (isDark ? AppColors.darkTextHint : AppColors.lightTextHint)
+        : AppColors.warning;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         Row(
           children: [
-            Text('${state.currentStreak}', style: Theme.of(context).textTheme.headlineSmall),
+            Icon(Icons.local_fire_department, color: flameColor, size: 34),
             const SizedBox(width: 6),
-            const Icon(Icons.local_fire_department, color: Colors.orange),
-            const SizedBox(width: 6),
-            Text('day streak', style: Theme.of(context).textTheme.bodyMedium),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${state.currentStreak}',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                Text('day streak', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
             const Spacer(),
-            _LegendDot(color: const Color(0xFF1D9E75), label: 'No spend'),
+            _LegendDot(color: AppColors.income, label: 'No spend'),
             const SizedBox(width: 12),
-            _LegendDot(color: const Color(0xFFFCE5E5), label: 'Low spend'),
-            const SizedBox(width: 8),
-            _LegendDot(color: const Color(0xFFE24B4A), label: 'High spend'),
+            _LegendDot(color: AppColors.expense.withValues(alpha: 0.35), label: 'Spend'),
           ],
         ),
         const SizedBox(height: 12),
@@ -55,11 +72,11 @@ class StreakHeatmap extends StatelessWidget {
               final isToday = DateUtils.isSameDay(date, today);
               final spendAmount = expenseTotals[date] ?? 0;
               final spendRatio = maxSpend == 0 ? 0.0 : (spendAmount / maxSpend).clamp(0.0, 1.0);
-              final spendColor = Color.lerp(const Color(0xFFFCE5E5), const Color(0xFFE24B4A), spendRatio)!;
+              final spendColor = AppColors.expense.withValues(alpha: 0.35 + (spendRatio * 0.65));
               final color = isFuture
                   ? Colors.transparent
                   : isNoSpend
-                      ? const Color(0xFF1D9E75)
+                      ? AppColors.income
                       : spendColor;
               return Tooltip(
                 message:
@@ -71,8 +88,12 @@ class StreakHeatmap extends StatelessWidget {
                     color: color,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isToday ? const Color(0xFF1D9E75) : Colors.grey.shade400,
-                      width: isToday ? 2 : 1,
+                      color: isToday
+                          ? AppColors.softIvory
+                          : isFuture
+                              ? Theme.of(context).dividerColor
+                              : Colors.transparent,
+                      width: isToday ? 1.5 : 1,
                     ),
                   ),
                 ),
@@ -81,7 +102,7 @@ class StreakHeatmap extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ));
   }
 }
 

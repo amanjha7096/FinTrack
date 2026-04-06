@@ -46,9 +46,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
               return _buildLoading();
             }
             if (state.dailyTotals.isEmpty) {
-              return EmptyStateView(
-                title: 'No insights yet',
-                subtitle: 'Add a few transactions to see insights for this month.',
+              return const EmptyStateView(
+                title: 'Nothing to analyse yet.',
+                subtitle: 'Add a few transactions and come back.',
+                icon: Icons.analytics_outlined,
+                animated: true,
+                variant: EmptyStateVariant.insights,
               );
             }
             return _buildContent(context, state);
@@ -85,6 +88,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
         children: [
           _buildMonthSelector(context, state),
           const SizedBox(height: 16),
+          _BestWeekCard(label: state.bestWeekLabel, savedAmount: state.bestWeekSaved),
+          const SizedBox(height: 16),
           WeekComparisonCard(state: state),
           const SizedBox(height: 16),
           CategoryBarChart(expenseByCategory: state.expenseByCategory),
@@ -118,6 +123,47 @@ class _InsightsScreenState extends State<InsightsScreen> {
           icon: const Icon(Icons.chevron_right),
         ),
       ],
+    );
+  }
+}
+
+class _BestWeekCard extends StatelessWidget {
+  const _BestWeekCard({required this.label, required this.savedAmount});
+
+  final String label;
+  final double savedAmount;
+
+  @override
+  Widget build(BuildContext context) {
+    if (label.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final amount = savedAmount.toStringAsFixed(0);
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.stars, color: Theme.of(context).colorScheme.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Your best week was $label — you saved ₹$amount that week.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

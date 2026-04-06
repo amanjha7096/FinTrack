@@ -17,18 +17,23 @@ const AppSettingsModelSchema = CollectionSchema(
   name: r'AppSettingsModel',
   id: -638838212012723081,
   properties: {
-    r'firstLaunchDate': PropertySchema(
+    r'customCategories': PropertySchema(
       id: 0,
+      name: r'customCategories',
+      type: IsarType.stringList,
+    ),
+    r'firstLaunchDate': PropertySchema(
+      id: 1,
       name: r'firstLaunchDate',
       type: IsarType.dateTime,
     ),
     r'hasSeededData': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'hasSeededData',
       type: IsarType.bool,
     ),
     r'isDarkMode': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'isDarkMode',
       type: IsarType.bool,
     )
@@ -53,6 +58,7 @@ int _appSettingsModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.customCategories.fold<int>(0, (sum, value) => sum + value.length * 3 + 3);
   return bytesCount;
 }
 
@@ -62,9 +68,10 @@ void _appSettingsModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.firstLaunchDate);
-  writer.writeBool(offsets[1], object.hasSeededData);
-  writer.writeBool(offsets[2], object.isDarkMode);
+  writer.writeStringList(offsets[0], object.customCategories);
+  writer.writeDateTime(offsets[1], object.firstLaunchDate);
+  writer.writeBool(offsets[2], object.hasSeededData);
+  writer.writeBool(offsets[3], object.isDarkMode);
 }
 
 AppSettingsModel _appSettingsModelDeserialize(
@@ -74,10 +81,11 @@ AppSettingsModel _appSettingsModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppSettingsModel();
-  object.firstLaunchDate = reader.readDateTimeOrNull(offsets[0]);
-  object.hasSeededData = reader.readBool(offsets[1]);
+  object.customCategories = reader.readStringList(offsets[0]) ?? [];
+  object.firstLaunchDate = reader.readDateTimeOrNull(offsets[1]);
+  object.hasSeededData = reader.readBool(offsets[2]);
   object.id = id;
-  object.isDarkMode = reader.readBool(offsets[2]);
+  object.isDarkMode = reader.readBool(offsets[3]);
   return object;
 }
 
@@ -89,10 +97,12 @@ P _appSettingsModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -193,6 +203,17 @@ extension AppSettingsModelQueryWhere
 
 extension AppSettingsModelQueryFilter
     on QueryBuilder<AppSettingsModel, AppSettingsModel, QFilterCondition> {
+  QueryBuilder<AppSettingsModel, AppSettingsModel, QAfterFilterCondition>
+      customCategoriesElementEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'customCategories',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
   QueryBuilder<AppSettingsModel, AppSettingsModel, QAfterFilterCondition>
       firstLaunchDateIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -482,6 +503,13 @@ extension AppSettingsModelQueryProperty
   QueryBuilder<AppSettingsModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<AppSettingsModel, List<String>, QQueryOperations>
+      customCategoriesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'customCategories');
     });
   }
 

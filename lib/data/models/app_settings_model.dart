@@ -8,4 +8,5 @@ class AppSettingsModel {
   bool isDarkMode = false;
   bool hasSeededData = false;
   DateTime? firstLaunchDate;
+  List<String> customCategories = [];
 }

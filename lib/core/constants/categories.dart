@@ -130,6 +130,39 @@ class Categories {
         return category;
       }
     }
-    return null;
+    if (key.trim().isEmpty) {
+      return null;
+    }
+    return TransactionCategory(
+      key: key,
+      label: key,
+      icon: Icons.sell_rounded,
+      color: AppColors.accent,
+    );
+  }
+
+  static List<TransactionCategory> withCustom(
+    List<String> customCategories, {
+    String? type,
+  }) {
+    final base = switch (type) {
+      'income' => income,
+      'expense' => expense,
+      _ => all,
+    };
+    final baseKeys = base.map((category) => category.key).toSet();
+    final custom = customCategories
+        .map((label) => label.trim())
+        .where((label) => label.isNotEmpty && !baseKeys.contains(label))
+        .map(
+          (label) => TransactionCategory(
+            key: label,
+            label: label,
+            icon: Icons.sell_rounded,
+            color: AppColors.accent,
+          ),
+        )
+        .toList();
+    return [...base, ...custom];
   }
 }

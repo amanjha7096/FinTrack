@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../../logic/transaction_bloc/transaction_bloc.dart';
 import '../../../logic/transaction_bloc/transaction_event.dart';
@@ -92,6 +94,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: _searchController,
@@ -104,53 +107,68 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _FilterChip(
-                    label: 'All',
-                    isSelected: state.activeFilter.type == null,
-                    onTap: () {
-                      _searchController.clear();
-                      context.read<TransactionBloc>().add(const ClearFilter());
-                    },
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _FilterChip(
+                            label: 'All',
+                            isSelected: state.activeFilter.type == null,
+                            onTap: () {
+                              _searchController.clear();
+                              context.read<TransactionBloc>().add(const ClearFilter());
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _FilterChip(
+                            label: 'Income',
+                            isSelected: state.activeFilter.type == 'income',
+                            onTap: () {
+                              context
+                                  .read<TransactionBloc>()
+                                  .add(FilterTransactions(state.activeFilter.copyWith(type: 'income')));
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _FilterChip(
+                            label: 'Expense',
+                            isSelected: state.activeFilter.type == 'expense',
+                            onTap: () {
+                              context
+                                  .read<TransactionBloc>()
+                                  .add(FilterTransactions(state.activeFilter.copyWith(type: 'expense')));
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'Income',
-                    isSelected: state.activeFilter.type == 'income',
-                    onTap: () {
-                      context
-                          .read<TransactionBloc>()
-                          .add(FilterTransactions(state.activeFilter.copyWith(type: 'income')));
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'Expense',
-                    isSelected: state.activeFilter.type == 'expense',
-                    onTap: () {
-                      context
-                          .read<TransactionBloc>()
-                          .add(FilterTransactions(state.activeFilter.copyWith(type: 'expense')));
-                    },
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.filter_list),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                        ),
-                        builder: (context) {
-                          return BlocProvider.value(
-                            value: context.read<TransactionBloc>(),
-                            child: FilterBottomSheet(initialFilter: state.activeFilter),
-                          );
-                        },
-                      );
-                    },
+                  const SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Theme.of(context).dividerColor),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.tune_rounded),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          backgroundColor: Colors.transparent,
+                          barrierColor: AppColors.ink.withValues(alpha: 0.6),
+                          builder: (context) {
+                            return BlocProvider.value(
+                              value: context.read<TransactionBloc>(),
+                              child: FilterBottomSheet(initialFilter: state.activeFilter),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -158,11 +176,16 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           ),
         ),
         Expanded(
-          child: sortedKeys.isEmpty
-              ? EmptyStateView(
-                  title: 'No transactions found',
-                  subtitle: 'Try adjusting filters or add a new transaction.',
-                )
+              child: sortedKeys.isEmpty
+                  ? EmptyStateView(
+                      title: state.transactions.isEmpty
+                          ? 'No transactions yet.'
+                          : 'No transactions found',
+                      subtitle: state.transactions.isEmpty
+                          ? 'Tap the + button to record your first income or expense.'
+                          : 'Try adjusting filters or add a new transaction.',
+                      variant: EmptyStateVariant.transactions,
+                    )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: sortedKeys.length,
@@ -174,13 +197,29 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            _formatDate(date),
-                            style: Theme.of(context).textTheme.labelLarge,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Row(
+                            children: [
+                              Text(
+                                _formatDate(date),
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      letterSpacing: 0.8,
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? AppColors.darkTextSub
+                                          : AppColors.lightTextSub,
+                                    ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  height: 1,
+                                  color: Theme.of(context).dividerColor,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        ...items.map((tx) => TransactionListItem(transaction: tx)).toList(),
+                        ...items.map((tx) => TransactionListItem(transaction: tx)),
                       ],
                     );
                   },
@@ -195,9 +234,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final yesterday = today.subtract(const Duration(days: 1));
     if (DateUtils.isSameDay(date, today)) return 'Today';
     if (DateUtils.isSameDay(date, yesterday)) return 'Yesterday';
-    return '${date.day}/${date.month}/${date.year}';
+    return DateFormat('EEE d MMM').format(date);
   }
-
 }
 
 class _FilterChip extends StatelessWidget {
@@ -213,21 +251,33 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduced = MediaQuery.of(context).disableAnimations;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: Container(
+      child: AnimatedContainer(
+        duration: reduced ? Duration.zero : const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
-              : Theme.of(context).cardColor,
+          gradient: isSelected
+              ? const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [AppColors.gradientTealStart, AppColors.gradientTealEnd],
+                )
+              : null,
+          color: isSelected ? null : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
+            color: isSelected ? Colors.transparent : Theme.of(context).dividerColor,
           ),
         ),
-        child: Text(label, style: Theme.of(context).textTheme.labelMedium),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: isSelected ? AppColors.softIvory : null,
+              ),
+        ),
       ),
     );
   }

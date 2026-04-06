@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../logic/insights_cubit/insights_state.dart';
 
 class MonthlyLineChart extends StatelessWidget {
@@ -16,9 +17,17 @@ class MonthlyLineChart extends StatelessWidget {
       incomeSpots.add(FlSpot(i.toDouble(), dailyTotals[i].income));
       expenseSpots.add(FlSpot(i.toDouble(), dailyTotals[i].expense));
     }
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final gridColor = (Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkBorder
+            : AppColors.lightBorder)
+        .withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.3);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -30,7 +39,11 @@ class MonthlyLineChart extends StatelessWidget {
               height: 220,
               child: LineChart(
                 LineChartData(
-                  gridData: const FlGridData(show: true),
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (_) => FlLine(color: gridColor, strokeWidth: 0.5),
+                  ),
                   titlesData: FlTitlesData(
                     leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -56,16 +69,38 @@ class MonthlyLineChart extends StatelessWidget {
                     LineChartBarData(
                       spots: incomeSpots,
                       isCurved: true,
-                      color: const Color(0xFF1D9E75),
-                      barWidth: 2,
-                      dotData: const FlDotData(show: true),
+                      color: AppColors.income,
+                      barWidth: 2.5,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.income.withValues(alpha: 0.24),
+                            AppColors.income.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
                     ),
                     LineChartBarData(
                       spots: expenseSpots,
                       isCurved: true,
-                      color: const Color(0xFFE24B4A),
-                      barWidth: 2,
-                      dotData: const FlDotData(show: true),
+                      color: AppColors.expense,
+                      barWidth: 2.5,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.expense.withValues(alpha: 0.2),
+                            AppColors.expense.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

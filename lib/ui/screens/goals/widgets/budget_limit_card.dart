@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/categories.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../data/models/budget_limit_model.dart';
+import '../../../../data/repositories/i_goal_repository.dart';
 import '../../../../logic/goal_bloc/goal_bloc.dart';
 import '../../../../logic/goal_bloc/goal_event.dart';
 
@@ -28,24 +31,28 @@ class BudgetLimitCard extends StatelessWidget {
     final progress = limit!.limitAmount == 0 ? 0.0 : spent / limit!.limitAmount;
     final over = progress >= 1;
     final barColor = progress >= 1
-        ? Colors.red
+        ? AppColors.expense
         : progress >= 0.8
-            ? Colors.orange
-            : const Color(0xFF1D9E75);
+            ? AppColors.warning
+            : AppColors.income;
     return Dismissible(
       key: ValueKey(limit!.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: Colors.red.withOpacity(0.2),
-        child: const Icon(Icons.delete, color: Colors.red),
+        color: AppColors.expense.withValues(alpha: 0.2),
+        child: const Icon(Icons.delete, color: AppColors.expense),
       ),
       onDismissed: (_) => context.read<GoalBloc>().add(DeleteBudgetLimit(limit!.id)),
-      child: Card(
-        elevation: 0,
-        color: over ? Colors.red.withOpacity(0.1) : null,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: over ? AppColors.expense.withValues(alpha: 0.08) : Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -53,9 +60,29 @@ class BudgetLimitCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(category?.icon ?? Icons.category, color: category?.color),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: (category?.color ?? barColor).withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(category?.icon ?? Icons.category, color: category?.color),
+                  ),
                   const SizedBox(width: 8),
                   Text(category?.label ?? limit!.category, style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: barColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${(progress * 100).clamp(0, 999).toStringAsFixed(0)}%',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: barColor),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -64,17 +91,20 @@ class BudgetLimitCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: progress.isNaN ? 0.0 : progress.clamp(0.0, 1.0).toDouble(),
-                minHeight: 6,
-                backgroundColor: Theme.of(context).dividerColor,
-                color: barColor,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: progress.isNaN ? 0.0 : progress.clamp(0.0, 1.0).toDouble(),
+                  minHeight: 6,
+                  backgroundColor: Theme.of(context).dividerColor,
+                  color: barColor,
+                ),
               ),
               if (over) ...[
                 const SizedBox(height: 6),
                 Text(
                   'Over budget by ${CurrencyFormatter.format(spent - limit!.limitAmount)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.expense),
                 ),
               ],
             ],
@@ -91,8 +121,22 @@ class _AddBudgetLimitSheet extends StatefulWidget {
 }
 
 class _AddBudgetLimitSheetState extends State<_AddBudgetLimitSheet> {
+  final IGoalRepository _goalRepository = getIt<IGoalRepository>();
   String? _category;
   final TextEditingController _amountController = TextEditingController();
+  List<String> _customCategories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomCategories();
+  }
+
+  Future<void> _loadCustomCategories() async {
+    final settings = await _goalRepository.getAppSettings();
+    if (!mounted) return;
+    setState(() => _customCategories = List<String>.from(settings.customCategories));
+  }
 
   @override
   void dispose() {
@@ -118,7 +162,7 @@ class _AddBudgetLimitSheetState extends State<_AddBudgetLimitSheet> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: Categories.all
+            children: Categories.withCustom(_customCategories, type: 'expense')
                 .map(
                   (cat) => ChoiceChip(
                     label: Text(cat.label),
